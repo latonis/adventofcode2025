@@ -33,10 +33,7 @@ File.stream!("input")
     end)
 
   highs
-  |> Enum.map(fn x ->
-    {val, _} = x
-    val
-  end)
+  |> Enum.map(fn {val, _} -> val end)
   |> Integer.undigits()
 end)
 |> Enum.sum()
