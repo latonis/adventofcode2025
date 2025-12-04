@@ -1,3 +1,28 @@
+defmodule Grid do
+  def get_accessible_bales(grid) do
+    Map.keys(grid)
+    |> Enum.filter(fn {row, col} -> Map.get(grid, {row, col}) == "@" end)
+    |> Enum.filter(fn {row, col} ->
+      frequencies =
+        [
+          {-1, -1},
+          {0, -1},
+          {1, -1},
+          {-1, 0},
+          {1, 0},
+          {-1, 1},
+          {0, 1},
+          {1, 1}
+        ]
+        |> Enum.map(fn {dx, dy} -> {row + dx, col + dy} end)
+        |> Enum.map(fn coord -> Map.get(grid, coord) end)
+        |> Enum.frequencies()
+
+      Map.get(frequencies, "@", 0) < 4
+    end)
+  end
+end
+
 grid =
   File.stream!("input")
   |> Stream.map(&String.trim/1)
@@ -11,26 +36,21 @@ grid =
   end)
   |> Map.new()
 
-Map.keys(grid)
-|> Enum.filter(fn {row, col} -> Map.get(grid, {row, col}) == "@" end)
-|> Enum.filter(fn {row, col} ->
-  frequencies =
-    [
-      {-1, -1},
-      {0, -1},
-      {1, -1},
-      {-1, 0},
-      {1, 0},
-      {-1, 1},
-      {0, 1},
-      {1, 1}
-    ]
-    |> Enum.map(fn {dx, dy} -> {row + dx, col + dy} end)
-    |> Enum.map(fn coord -> Map.get(grid, coord) end)
-    |> Enum.frequencies()
-    |> IO.inspect()
-
-  Map.get(frequencies, "@", 0) < 4
-end)
+# part 1
+Grid.get_accessible_bales(grid)
 |> Enum.count()
+|> IO.inspect()
+
+# part 2
+Enum.reduce_while(0..length(Map.keys(grid)), {0, grid}, fn _, {count, new_map} ->
+  to_filter = Grid.get_accessible_bales(new_map)
+  to_filter_count = to_filter |> Enum.count()
+
+  if to_filter_count == 0 do
+    {:halt, {count, new_map}}
+  else
+    {:cont, {count + to_filter_count, Map.drop(new_map, to_filter)}}
+  end
+end)
+|> elem(0)
 |> IO.inspect()
