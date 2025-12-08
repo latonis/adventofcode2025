@@ -98,7 +98,6 @@ defmodule Pathing do
         if row == n - 1 do
           {1, Map.put(memo, {row, col}, 1)}
         else
-          # must go down first
           case Map.get(grid, {row + 1, col}) do
             # if beneath is ., go down, only option (x, y + 1)
             "." ->
@@ -106,7 +105,7 @@ defmodule Pathing do
 
               {res, Map.put(memo_d, {row + 1, col}, res)}
 
-            # if ^ beneath, go down and left (x+1, y+1) + go down  and right (x+1, y+1)
+            # if ^ beneath, go down and left (x+1, y-1) + go down  and right (x+1, y+1)
             "^" ->
               {left, memo_l} = walk(row + 1, col - 1, grid, n, memo)
 
