@@ -13,7 +13,7 @@ defmodule Graph do
 end
 
 nodes =
-  File.stream!("test")
+  File.stream!("input")
   |> Stream.map(&String.trim/1)
   |> Stream.map(fn x -> String.split(x, ",") end)
   |> Stream.map(fn x -> Enum.map(x, &String.to_integer/1) end)
@@ -32,6 +32,7 @@ distances =
   end)
   |> Enum.sort_by(fn {_p1, _p2, dist} -> dist end)
 
+# part 1
 1..1000
 |> Enum.reduce({[], MapSet.new()}, fn _number, {circuits, seen_pairs} ->
   edge =
@@ -63,3 +64,41 @@ end)
 |> Enum.take(3)
 |> Enum.product()
 |> IO.inspect()
+
+# part 2
+1..10_000_000
+|> Enum.reduce_while({[], MapSet.new()}, fn _number, {circuits, seen_pairs} ->
+  edge =
+    Enum.find(distances, fn {a, b, _distance} ->
+      not (MapSet.member?(seen_pairs, {a, b}) or MapSet.member?(seen_pairs, {b, a}))
+    end)
+
+  case edge do
+    nil ->
+      {:halt, {circuits, seen_pairs}}
+
+    {p1, p2, _dist} ->
+      {sets_with_points, other_sets} =
+        Enum.split_with(circuits, fn set ->
+          MapSet.member?(set, p1) or MapSet.member?(set, p2)
+        end)
+
+      new_set =
+        sets_with_points
+        |> Enum.reduce(MapSet.new([p1, p2]), fn set, acc -> MapSet.union(set, acc) end)
+
+      new_circuits = [new_set | other_sets]
+
+      new_map = MapSet.put(seen_pairs, {p1, p2})
+
+      if Enum.count(new_circuits) == 1 and Enum.count(new_set) == Enum.count(nodes) do
+        IO.inspect("We hit one big circuit")
+        IO.inspect(p1, label: "p1")
+        IO.inspect(p2, label: "p2")
+        IO.inspect(p1.x * p2.x, label: "Product of x")
+        {:halt, {new_circuits, new_map}}
+      else
+        {:cont, {new_circuits, new_map}}
+      end
+  end
+end)
