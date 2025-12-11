@@ -1,24 +1,29 @@
 defmodule Search do
   def find_paths(graph, start_node, end_node) do
-    recurse(graph, start_node, end_node, [start_node], MapSet.new([start_node]))
+    {count, _cache} = recurse(graph, start_node, end_node, 1, %{})
+    count
   end
 
-  defp recurse(graph, current_node, end_node, current_path, visited_set) do
+  defp recurse(graph, current_node, end_node, current_len, cache) do
     if current_node == end_node do
-      [Enum.reverse(current_path)]
+      {1, cache}
     else
-      neighbors = Map.get(graph, current_node, [])
+      if count = Map.get(cache, current_node) do
+        {count, cache}
+      else
+        neighbors = Map.get(graph, current_node, [])
 
-      Enum.flat_map(neighbors, fn neighbor ->
-        if not MapSet.member?(visited_set, neighbor) do
-          new_path = [neighbor | current_path]
-          new_visited_set = MapSet.put(visited_set, neighbor)
+        {total_count, final_cache} =
+          Enum.reduce(neighbors, {0, cache}, fn neighbor, {acc_count, acc_cache} ->
+            {neighbor_count, new_cache} =
+              recurse(graph, neighbor, end_node, current_len + 1, acc_cache)
 
-          recurse(graph, neighbor, end_node, new_path, new_visited_set)
-        else
-          []
-        end
-      end)
+            {acc_count + neighbor_count, new_cache}
+          end)
+
+        new_cache_with_result = Map.put(final_cache, current_node, total_count)
+        {total_count, new_cache_with_result}
+      end
     end
   end
 end
@@ -32,7 +37,17 @@ graph =
   end)
   |> Map.new()
 
+# part 1
 start_key = "you"
 end_key = "out"
+Search.find_paths(graph, start_key, end_key) |> IO.inspect()
 
-Search.find_paths(graph, start_key, end_key) |> Enum.count() |> IO.inspect()
+# part 2
+start_key = "svr"
+required_a = "dac"
+required_b = "fft"
+
+(Search.find_paths(graph, start_key, required_b) *
+   Search.find_paths(graph, required_b, required_a) *
+   Search.find_paths(graph, required_a, end_key))
+|> IO.inspect()
