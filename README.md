@@ -4,4 +4,9 @@
 
 Welcome to my attempts for [Advent of Code 2025](https://adventofcode.com/2025)!
 
+## Pre Advent of Code 2025
 I am writing this years solutions in Elixir. It is new to me (I solved a few days of 2019 AoC to warm up in Elixir).
+
+## Post Advent of Code 2025
+Current thoughts on Elixir after completing Advent of Code 2025:
+I love `|>`.
